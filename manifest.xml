@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
+           xsi:type="MailApp">
+  <Id>c5083a0a-70cd-4356-8c8e-1edc15bd9fce</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Repitone</ProviderName>
+  <DefaultLocale>ko-KR</DefaultLocale>
+  <DisplayName DefaultValue="MailGuard"/>
+  <Description DefaultValue="발송 전 수신자·인용 이력·거래처 노출을 자동 검사합니다. 문제가 없으면 그대로 발송됩니다."/>
+  <IconUrl DefaultValue="https://repitone.github.io/mailguard/icon-64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://repitone.github.io/mailguard/icon-128.png"/>
+  <SupportUrl DefaultValue="https://repitone.github.io/mailguard/taskpane.html"/>
+  <AppDomains>
+    <AppDomain>https://repitone.github.io</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Mailbox"/>
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.1"/>
+    </Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://repitone.github.io/mailguard/taskpane.html"/>
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadWriteItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit"/>
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read"/>
+  </Rule>
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides/1.1" xsi:type="VersionOverridesV1_1">
+      <Requirements>
+        <bt:Sets DefaultMinVersion="1.15">
+          <bt:Set Name="Mailbox"/>
+        </bt:Sets>
+      </Requirements>
+      <Hosts>
+        <Host xsi:type="MailHost">
+          <Runtimes>
+            <!-- HTML runtime for new Outlook / web; JavaScript-only runtime for classic Outlook on Windows -->
+            <Runtime resid="WebViewRuntime.Url">
+              <Override type="javascript" resid="JSRuntime.Url"/>
+            </Runtime>
+          </Runtimes>
+          <DesktopFormFactor>
+            <FunctionFile resid="Commands.Url"/>
+            <ExtensionPoint xsi:type="MessageComposeCommandSurface">
+              <OfficeTab id="TabDefault">
+                <Group id="mgComposeGroup">
+                  <Label resid="GroupLabel"/>
+                  <Control xsi:type="Button" id="mgTaskpaneButton">
+                    <Label resid="TaskpaneButton.Label"/>
+                    <Supertip>
+                      <Title resid="TaskpaneButton.Label"/>
+                      <Description resid="TaskpaneButton.Tooltip"/>
+                    </Supertip>
+                    <Icon>
+                      <bt:Image size="16" resid="Icon.16x16"/>
+                      <bt:Image size="32" resid="Icon.32x32"/>
+                      <bt:Image size="80" resid="Icon.80x80"/>
+                    </Icon>
+                    <Action xsi:type="ShowTaskpane">
+                      <SourceLocation resid="Taskpane.Url"/>
+                    </Action>
+                  </Control>
+                </Group>
+              </OfficeTab>
+            </ExtensionPoint>
+            <ExtensionPoint xsi:type="MessageReadCommandSurface">
+              <OfficeTab id="TabDefault">
+                <Group id="mgReadGroup">
+                  <Label resid="GroupLabel"/>
+                  <Control xsi:type="Button" id="mgReadButton">
+                    <Label resid="ReadButton.Label"/>
+                    <Supertip>
+                      <Title resid="ReadButton.Label"/>
+                      <Description resid="TaskpaneButton.Tooltip"/>
+                    </Supertip>
+                    <Icon>
+                      <bt:Image size="16" resid="Icon.16x16"/>
+                      <bt:Image size="32" resid="Icon.32x32"/>
+                      <bt:Image size="80" resid="Icon.80x80"/>
+                    </Icon>
+                    <Action xsi:type="ShowTaskpane">
+                      <SourceLocation resid="Taskpane.Url"/>
+                    </Action>
+                  </Control>
+                </Group>
+              </OfficeTab>
+            </ExtensionPoint>
+            <ExtensionPoint xsi:type="LaunchEvent">
+              <LaunchEvents>
+                <LaunchEvent Type="OnMessageSend" FunctionName="onMessageSendHandler" SendMode="SoftBlock"/>
+              </LaunchEvents>
+              <SourceLocation resid="WebViewRuntime.Url"/>
+            </ExtensionPoint>
+          </DesktopFormFactor>
+        </Host>
+      </Hosts>
+      <Resources>
+        <bt:Images>
+          <bt:Image id="Icon.16x16" DefaultValue="https://repitone.github.io/mailguard/icon-16.png"/>
+          <bt:Image id="Icon.32x32" DefaultValue="https://repitone.github.io/mailguard/icon-32.png"/>
+          <bt:Image id="Icon.80x80" DefaultValue="https://repitone.github.io/mailguard/icon-80.png"/>
+        </bt:Images>
+        <bt:Urls>
+          <bt:Url id="Commands.Url" DefaultValue="https://repitone.github.io/mailguard/commands.html"/>
+          <bt:Url id="Taskpane.Url" DefaultValue="https://repitone.github.io/mailguard/taskpane.html"/>
+          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://repitone.github.io/mailguard/commands.html"/>
+          <bt:Url id="JSRuntime.Url" DefaultValue="https://repitone.github.io/mailguard/launchevent.js"/>
+        </bt:Urls>
+        <bt:ShortStrings>
+          <bt:String id="GroupLabel" DefaultValue="MailGuard"/>
+          <bt:String id="TaskpaneButton.Label" DefaultValue="MailGuard 검사"/>
+          <bt:String id="ReadButton.Label" DefaultValue="MailGuard 거래처"/>
+        </bt:ShortStrings>
+        <bt:LongStrings>
+          <bt:String id="TaskpaneButton.Tooltip" DefaultValue="현재 메일의 수신자·인용 이력·거래처 노출을 검사하고, 거래처 목록을 관리합니다."/>
+        </bt:LongStrings>
+      </Resources>
+    </VersionOverrides>
+  </VersionOverrides>
+</OfficeApp>
