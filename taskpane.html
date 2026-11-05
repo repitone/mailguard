@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MailGuard</title>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<script src="engine.js"></script>
+<style>
+  :root {
+    --bg: #ffffff; --ink: #1d2433; --muted: #5b6475; --line: #e3e6ec; --soft: #f5f7fa;
+    --block: #c4342d; --block-bg: #fdf0ef; --warn: #a15c00; --warn-bg: #fff6e6;
+    --ok: #1f7a4d; --ok-bg: #ecf7f1; --accent: #2457c5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1b1d22; --ink: #e8eaef; --muted: #a2a9b6; --line: #343842; --soft: #24272e;
+      --block: #ff8a80; --block-bg: #3a2322; --warn: #ffc266; --warn-bg: #3a3020; --ok: #7ed6a8; --ok-bg: #1f3329; --accent: #8fb0ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 13px/1.5 "Segoe UI", "Malgun Gothic", system-ui, sans-serif; color: var(--ink); background: var(--bg); }
+  header { display: flex; gap: 4px; padding: 8px 12px 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); }
+  header button { border: 0; background: none; padding: 8px 10px; color: var(--muted); font: inherit; cursor: pointer; border-bottom: 2px solid transparent; }
+  header button.on { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+  main { padding: 12px; }
+  section[hidden] { display: none; }
+  h2 { font-size: 14px; margin: 4px 0 8px; }
+  h3 { font-size: 12px; margin: 16px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .card { border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+  .card.block { border-color: var(--block); background: var(--block-bg); }
+  .card.warn { border-color: var(--warn); background: var(--warn-bg); }
+  .card.ok { border-color: var(--ok); background: var(--ok-bg); }
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 0 6px; border-radius: 4px; margin-right: 6px; }
+  .block .tag { background: var(--block); color: #fff; }
+  .warn .tag { background: var(--warn); color: #fff; }
+  .title { font-weight: 600; }
+  .detail { color: var(--muted); word-break: break-all; margin-top: 2px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  button.btn { border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer; }
+  button.btn:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.danger { color: var(--block); }
+  input, select, textarea { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+  textarea { min-height: 64px; resize: vertical; }
+  label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 3px; }
+  .row { display: flex; gap: 6px; align-items: center; }
+  .row > * { flex: 1; }
+  .list .item { display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .muted { color: var(--muted); }
+  .small { font-size: 12px; }
+  .toast { position: fixed; left: 12px; right: 12px; bottom: 12px; background: var(--ink); color: var(--bg); padding: 8px 12px; border-radius: 6px; display: none; }
+  code { background: var(--soft); padding: 0 4px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<header>
+  <button data-tab="check" class="on">현재 메일</button>
+  <button data-tab="companies">거래처</button>
+  <button data-tab="settings">설정</button>
+</header>
+<main>
+  <section id="tab-check">
+    <div id="check-out"><p class="muted">불러오는 중…</p></div>
+  </section>
+
+  <section id="tab-companies" hidden>
+    <h2>거래처 <span id="cp-count" class="muted small"></span></h2>
+    <p class="muted small">외부 거래처는 한 메일에 한 회사만 들어갈 수 있습니다. Forwarder와 중립 기관(은행·검사기관)은 예외입니다.</p>
+    <div class="row"><input id="cp-filter" placeholder="회사명·도메인 검색"><button class="btn" id="cp-new" style="flex:0 0 auto">+ 추가</button></div>
+    <div id="cp-form" class="card" hidden></div>
+    <div id="cp-list" class="list"></div>
+    <h3>함께 받아도 되는 조합</h3>
+    <p class="muted small">예: 매출처와 그 거래의 Forwarder, 같은 그룹 계열사</p>
+    <div id="grp-list" class="list"></div>
+    <button class="btn" id="grp-new">+ 조합 추가</button>
+    <div id="grp-form" class="card" hidden></div>
+  </section>
+
+  <section id="tab-settings" hidden>
+    <h2>설정</h2>
+    <label for="set-internal">내 회사 도메인 (쉼표로 구분)</label>
+    <div class="row"><input id="set-internal" placeholder="mycompany.com"><button class="btn primary" id="set-internal-save" style="flex:0 0 auto">저장</button></div>
+    <p class="muted small">이 값이 비어 있으면 MailGuard는 아무 검사도 하지 않습니다.</p>
+
+    <h3>거래처 목록 가져오기 / 내보내기</h3>
+    <textarea id="set-json" placeholder="Claude가 만든 JSON을 붙여넣으세요"></textarea>
+    <div class="actions">
+      <button class="btn primary" id="set-import-merge">합치기</button>
+      <button class="btn" id="set-import-replace">전체 교체</button>
+      <button class="btn" id="set-export">현재 목록 내보내기</button>
+    </div>
+
+    <h3>사유 입력 후 발송 기록 <span class="muted small">(최근 50건)</span></h3>
+    <div id="set-log" class="list small"></div>
+
+    <h3>저장 공간</h3>
+    <p id="set-usage" class="muted small"></p>
+    <button class="btn" id="set-reset-seen">"처음 보는 주소" 기록 초기화</button>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<script src="taskpane.js"></script>
+</body>
+</html>
